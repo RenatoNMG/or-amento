@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Configurações - Orçamento VE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --background: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--card);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--secondary);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 15px;
+        }
+
+        .form-row label {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-row input, .form-row textarea {
+            flex: 2;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-row textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            cursor: pointer;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: none;
+            transition: opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; width: 100%; font-size: 1.1rem; padding: 15px;}
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn:hover { opacity: 0.9; }
+
+        .btn:disabled {
+            background: var(--secondary);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <span id="loading-text">Carregando dados do Google Sheets...</span>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>⚙️ Editor de Preços e Textos</h1>
+        <button class="btn btn-outline" onclick="window.location.href='index.html'">🔙 Voltar ao Orçamento</button>
+    </div>
+
+    <div id="editor-forms">
+        <!-- Os inputs serão injetados aqui via JavaScript -->
+    </div>
+
+    <div style="margin-top: 20px; padding-bottom: 50px;">
+        <button id="btn-salvar" class="btn btn-success" onclick="salvarAlteracoes()">
+            💾 SALVAR TODAS AS ALTERAÇÕES
+        </button>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyP22sgXl2DuZNMXNG_yoF75mGR8EG9RdxTyEMiiZIElvQOYNIDZzXgwqfVwZ-y0kmB/exec';
+    
+    // Nomes amigáveis para exibir na tela ao invés das chaves técnicas
+    const dicionario = {
+        cabo_10mm: "Cabo Flexível 10mm² (R$)",
+        eletroduto_3m: "Eletroduto PVC 3/4 (R$)",
+        unidut: "Unidut Cônico 3/4 (R$)",
+        unidut_reto: "Unidut Reto 3/4 (R$)",
+        condulete: "Condulete Alumínio 3/4 (R$)",
+        string_box: "String Box CA (R$)",
+        disjuntor_40a: "Disjuntor DIN 40A (R$)",
+        dps: "DPS 275V 45kA (R$)",
+        idr_tipo_a: "IDR Tetrapolar Tipo A (R$)",
+        abracadeira: "Abraçadeira Tipo D (R$)",
+        carregador: "Carregador VE (R$)",
+        margem_lucro: "Margem de Lucro (%)",
+        valor_km: "Valor por KM (R$)",
+        valor_diaria_ajudante: "Diária do Ajudante (R$)",
+        texto_escopo: "Escopo Padrão",
+        texto_pagamento: "Condição de Pagamento",
+        texto_prazo: "Prazo de Execução",
+        texto_termos: "Termos e Responsabilidades"
+    };
+
+    let dadosOriginais = {};
+
+    async function carregarDados() {
+        mostrarLoading("Sincronizando com o Google Sheets...");
+        
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error("Erro de rede");
+            const dados = await response.json();
+
+            let htmlMateriais = '<div class="card"><h2>🔌 Preços de Materiais</h2>';
+            let htmlFinancas = '<div class="card"><h2>💰 Taxas e Lucro</h2>';
+            let htmlTextos = '<div class="card"><h2>📝 Textos Padrão do PDF</h2>';
+
+            dados.forEach(linha => {
+                const colunas = Object.keys(linha);
+                if (colunas.length >= 2) {
+                    const nomeChave = colunas.find(k => k.toLowerCase().includes('chave')) || colunas[0];
+                    const nomeValor = colunas.find(k => k.toLowerCase().includes('valor')) || colunas[1];
+                    
+                    const chave = linha[nomeChave] ? linha[nomeChave].toString().trim() : '';
+                    const valor = linha[nomeValor] ? linha[nomeValor].toString().trim() : '';
+
+                    if (chave) {
+                        dadosOriginais[chave] = valor; // Salva estado original para comparar depois
+                        const labelAmigavel = dicionario[chave] || chave;
+                        
+                        // Decide o tipo de input e onde colocar
+                        if (chave.startsWith('texto_')) {
+                            htmlTextos += `
+                                <div class="form-row">
+                                    <label>${labelAmigavel}</label>
+                                    <textarea id="input_${chave}">${valor}</textarea>
+                                </div>`;
+                        } else if (chave === 'margem_lucro' || chave.startsWith('valor_')) {
+                            htmlFinancas += `
+                                <div class="form-row">
+                                    <label>${labelAmigavel}</label>
+                                    <input type="text" id="input_${chave}" value="${valor}">
+                                </div>`;
+                        } else {
+                            htmlMateriais += `
+                                <div class="form-row">
+                                    <label>${labelAmigavel}</label>
+                                    <input type="text" id="input_${chave}" value="${valor}">
+                                </div>`;
+                        }
+                    }
+                }
+            });
+
+            htmlMateriais += '</div>';
+            htmlFinancas += '</div>';
+            htmlTextos += '</div>';
+
+            document.getElementById('editor-forms').innerHTML = htmlMateriais + htmlFinancas + htmlTextos;
+
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao carregar dados. Verifique a URL da API.");
+        } finally {
+            esconderLoading();
+        }
+    }
+
+    async function salvarAlteracoes() {
+        const btnSalvar = document.getElementById('btn-salvar');
+        
+        // Coleta as alterações feitas
+        const alteracoes = [];
+        
+        Object.keys(dadosOriginais).forEach(chave => {
+            const input = document.getElementById(`input_${chave}`);
+            if (input) {
+                const novoValor = input.value.trim();
+                if (novoValor !== dadosOriginais[chave]) {
+                    alteracoes.push({ id: chave, valor: novoValor });
+                }
+            }
+        });
+
+        if (alteracoes.length === 0) {
+            alert("Nenhuma alteração foi feita.");
+            return;
+        }
+
+        btnSalvar.disabled = true;
+        mostrarLoading(`Salvando ${alteracoes.length} alterações...`);
+
+        try {
+            // Dispara requisições POST para cada linha alterada em paralelo
+            const promessas = alteracoes.map(item => {
+                return fetch(`${API_URL}?action=update`, {
+                    method: 'POST',
+                    // Importante: text/plain evita bloqueio de CORS no Google Apps Script
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ id: item.id, valor: item.valor })
+                });
+            });
+
+            await Promise.all(promessas);
+
+            alert("✅ Dados atualizados com sucesso na planilha!");
+            
+            // Atualiza o cache local para não acusar alteração de novo
+            alteracoes.forEach(item => { dadosOriginais[item.id] = item.valor; });
+
+        } catch (error) {
+            console.error(error);
+            alert("❌ Ocorreu um erro ao salvar. Você configurou a API com as funções de UPDATE?");
+        } finally {
+            btnSalvar.disabled = false;
+            esconderLoading();
+        }
+    }
+
+    function mostrarLoading(texto) {
+        document.getElementById('loading-text').innerText = texto;
+        document.getElementById('loading-overlay').classList.remove('hidden');
+    }
+
+    function esconderLoading() {
+        document.getElementById('loading-overlay').classList.add('hidden');
+    }
+
+    // Inicia o carregamento ao abrir a página
+    window.onload = carregarDados;
+</script>
+
+</body>
+</html>

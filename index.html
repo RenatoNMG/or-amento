@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Orçamento VE - Especialista</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #64748b;
+            --success: #059669;
+            --background: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Área isolada para o PDF */
+        #pdf-area {
+            background: white;
+            padding: 0; 
+        }
+
+        /* Header Padrão da Tela */
+        .header {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-bottom: 4px solid var(--primary);
+            background: var(--card);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .company-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-placeholder {
+            width: 160px;
+            height: 65px;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 6px;
+        }
+
+        .company-details {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--secondary);
+            line-height: 1.4;
+        }
+
+        .company-details strong {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .doc-meta {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+            text-transform: uppercase;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.80rem;
+            font-weight: 700;
+            color: var(--secondary);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px 0;
+        }
+
+        .checkbox-group input {
+            width: auto;
+        }
+
+        /* Tabela de Materiais */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            text-align: left;
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            padding: 10px 8px;
+            border-bottom: 2px solid var(--border);
+            background: #f1f5f9;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .qty-input {
+            width: 80px;
+            padding: 5px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Adicionais */
+        .extra-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            cursor: pointer;
+            padding: 14px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: none;
+            transition: opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; font-size: 1.1rem; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); font-size: 0.8rem; padding: 8px; }
+        .btn-secondary { background: #e2e8f0; color: var(--text); font-size: 1.1rem; }
+        .btn:hover { opacity: 0.9; }
+
+        .btn-group-bottom {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            padding-bottom: 50px;
+        }
+
+        @media (max-width: 600px) {
+            .btn-group-bottom { flex-direction: column; }
+        }
+
+        /* Resumo Final */
+        .summary {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+
+        .total-row {
+            border-top: 2px solid #cbd5e1;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* ----- ESTILOS PARA O PDF - DISTRIBUIÇÃO BALANCEADA ----- */
+        .print-only { display: none; }
+        
+        .is-printing {
+            background-color: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .is-printing .no-print { display: none !important; }
+        .is-printing .print-only { display: block; }
+        
+        .is-printing #pdf-area { 
+            padding: 15px 25px; 
+            margin: 0;
+            width: 100%;
+        }
+        
+        .is-printing .header { 
+            margin-bottom: 15px; 
+            padding: 5px 0 15px 0; 
+            border-bottom-width: 2px;
+        }
+        img{
+            width: 140px;
+            height: 50px;
+        }
+        
+        .is-printing .logo-placeholder { height: 50px; width: 140px; font-size: 0.7rem; }
+        .is-printing .company-details { font-size: 0.80rem; line-height: 1.3; }
+        .is-printing .company-details strong { font-size: 0.95rem; }
+        
+        .is-printing .doc-meta { margin-top: 10px; padding-top: 10px; font-size: 0.80rem; }
+
+        .is-printing .card { 
+            box-shadow: none; 
+            border: none;
+            padding: 0; 
+            margin-bottom: 15px; 
+        }
+
+        .is-printing h2 {
+            font-size: 0.90rem; 
+            margin-bottom: 8px;
+            padding-left: 6px;
+            border-left-width: 3px;
+        }
+
+        .is-printing .grid { gap: 10px; }
+        .is-printing .form-group { margin-bottom: 5px; }
+
+        .is-printing label, .is-printing .print-only {
+            font-size: 0.65rem !important;
+            margin-bottom: 2px;
+        }
+
+        .is-printing input, .is-printing textarea { 
+            border: none; 
+            background: transparent; 
+            padding: 0; 
+            font-weight: bold;
+            color: #000;
+            font-size: 0.80rem;
+            resize: none;
+            min-height: auto;
+            line-height: 1.3;
+        }
+
+        .is-printing textarea { height: auto; }
+
+        .is-printing input[type=number]::-webkit-inner-spin-button, 
+        .is-printing input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+        .is-printing input[type=number] { -moz-appearance: textfield; }
+
+        .is-printing table { margin-top: 5px; }
+        .is-printing th, .is-printing td { padding: 6px 5px; font-size: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+        .is-printing .hide-if-zero { display: none !important; }
+
+        .is-printing .summary {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 10px 15px; 
+            margin-top: 10px;
+        }
+
+        .is-printing .summary-row { margin-bottom: 4px; }
+
+        .is-printing .total-row {
+            margin-top: 8px;
+            padding-top: 8px;
+            font-size: 1.2rem; 
+        }
+
+        .is-printing .legal-terms {
+            font-size: 0.60rem;
+            color: #64748b;
+            text-align: justify;
+            margin-top: 15px;
+            padding: 0 5px;
+            line-height: 1.3;
+        }
+
+        .is-printing .signature-area {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px; 
+            padding: 0 30px;
+            text-align: center;
+        }
+
+        .is-printing .signature-line {
+            width: 45%;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .is-printing tr, .is-printing .summary, .is-printing .signature-area, .is-printing .legal-terms {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app-container">
+    <div id="pdf-area">
+        <header class="header">
+            <div class="company-info">
+                <div class="logo-placeholder"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARMAAAC3CAMAAAAGjUrGAAAAh1BMVEUHCAr///8AAAAwMDD8/PyNjo6ytLMKCw0FBgj+/f5iYmIICAwAAAT5+fmDhINqamrr6+uKioqTlJPKysrv7++xsbHCwsQxMzIZGhu8vL3f39/k5uWNjpCWlphWV1iYmpkfIB9LTE10dXUTFBWnp6jU1NY/QEEnJydDREVbXFtxcXGgoaEREhT0deT4AAAEcUlEQVR4nO2cfXfaIBSHwx2OxJrVaqzVbta6al+27//5xk2AoIFs+6M9G/yenTNXm+zIcy5w4RKLAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAB3BlKFTkglL/5ipKcfWhn/YjKKknbKVUNMrsoz/ye1PefZ0Yvu0ofA09LCZRFot9alJoLRzVY1gKHcQY64jK/xb65LWu+RSR8nXMSeSm/xfPSS3E/HugfUqV9CSkzNEJSznSsIGlUgUtRZZOJDd7E5pGVDGjY5Z9p+MHlUVgTqa7ue4+fqzIbJxIsaCQk5JOzZkT6aSk7kTKWhxCuZseZ18vRpRcnHD/qF9DjdTj7O7aY7pMvu9wtzDdQTYnUqEs/zylX6XuRPJMbMYLKebPwTHl/Mb0nUixOopaGkHHMtzOdhHMa2F94+fUnWgPK7o3w6YWdMsz8viNycdJJcRnemm4+3RenrihwVHF3ph8nLRO6LWWLu14IBYSl5KJk4IONkz034fw5ONuzMOJUrSw698uTUHf4Qz+if/ZaWlexqRk40RLuRVuTJnvR2affJwUNDv2K5ktnPDPip63VgqnKdH95/SdCOtEv3NqjBMtahWNlKycFDpNEY5JrMF5OfFqF5Xk3ZTwjQk7WQ+dcJrSE6mE0SZZJ7O7my8tN1OvaTpNMejcLVzToqm98S61OmAx66vF/psbN/fIRtHoDlNqSpRZ5l0ubcjULtr0bUtBKe5/SIzy4tW9z7UL03mEWA5jwcl870/476D04GtmZO5DwzQlJjNltJRHr56zGOk9OUFvbi+Siz4qp5AIUSounN+4CVmKKSKFK38l/bCTjxT1KbXULEbfH0LlUMVpis1Tmmd/i6mfd5LrUldORqhpqqSt6T61FNuZJ8VdnmKPCuaxHUqvfGhu4kRLWXrXqHTz2Mh6x6CnGtrXporclsX6aEp4vdOvizeR9e+jtMX12j+w06+LEz73uAo2TfeRa1tH1ma+uCEl5f2TwJ7S5SVemlJf2zTF1otlyk5icdIWfRzNzkSKiROZbpxUI3Gip6bbvr4xXxPnuBn0nVEnik+Cutxtu2+7T95OlD0J2iVvnKYgTviytS366JcNz8hw0hZ9Krufwgd24ERPPgfeRjG524TgpL1y4Q7sSPFGcNIOtE99cb3ewQnTFn1srDT7PM498s989jX2ICjxUzxWyjbd2uhfxEmhaH9fuYRW1jk4OSO48UanuVsk29dknWiWr1OPx/A2Pe3qwUNwqToZPuz3FpFyGDwsmaqTi+faeGct/LCxcrspGTg5b6c21ET2FE3RJwMnAe7D505mfbaWnxNxDB965LMpflhl5UTcRnpPcZ9rnFRV9xRP6Kb+tGiVnBPlf69FgEm3+Tq468W7Jrn6jvf9J4NvNtF/Hn7OIrnbIt3vP/HqxX/8JTiqVMVvLkmYyApZFWX38GiaxwoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4F/kF7IYL6dskGeFAAAAAElFTkSuQmCC" alt=""></div>
+                <div class="company-details print-only">
+                    <strong>Navarro</strong><br>
+                    Especialista em Mobilidade Elétrica<br>
+                    WhatsApp: (11) 976363840<br>
+                    renatonm9@gmail.com
+                </div>
+            </div>
+            <div class="doc-meta">
+                <span>Data: <span id="data-atual"></span></span>
+                <span class="print-only">Orçamento Válido por: 15 dias</span>
+            </div>
+        </header>
+
+        <section class="card">
+            <h2>Dados do Cliente</h2>
+            <div class="grid">
+                <div class="form-group">
+                    <label class="no-print">Cliente / Razão Social</label>
+                    <span class="print-only" style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Cliente:</span>
+                    <input type="text" id="cliente_nome" placeholder="Ex: João Silva">
+                </div>
+                <div class="form-group">
+                    <label class="no-print">Endereço de Instalação</label>
+                    <span class="print-only" style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Endereço:</span>
+                    <input type="text" id="cliente_endereco" placeholder="Rua, Número, Bairro">
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Escopo do Projeto</h2>
+            <div class="form-group">
+                <label class="no-print">Descrição Técnica das Atividades</label>
+                <textarea id="escopo_servico" rows="2" placeholder="Descreva os serviços..."></textarea>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Dimensionamento e Materiais</h2>
+            
+            <div class="grid" style="margin-bottom: 5px;">
+                <div class="form-group">
+                    <label class="no-print">Deslocamento Total (KM)</label>
+                    <span class="print-only" style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Deslocamento:</span>
+                    <input type="number" id="input_km" value="0" min="0" oninput="calcularFinanceiro()"> <span class="print-only" style="font-size:0.75rem;">km</span>
+                </div>
+                <div class="form-group">
+                    <label class="no-print">Distância da Infra (Metros)</label>
+                    <span class="print-only" style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Extensão:</span>
+                    <input type="number" id="input_distancia" value="0" min="0" oninput="atualizarQuantidadesSugeridas()"> <span class="print-only" style="font-size:0.75rem;">metros</span>
+                </div>
+            </div>
+            
+            <div class="grid no-print" style="margin-bottom: 10px;">
+                <label class="checkbox-group">
+                    <input type="checkbox" id="check_ajudante" onchange="calcularFinanceiro()"> Incluir Diária de Ajudante
+                </label>
+                <label class="checkbox-group">
+                    <input type="checkbox" id="check_vender_carregador" onchange="atualizarQuantidadesSugeridas()"> Vender Carregador Próprio
+                </label>
+            </div>
+
+            <table id="tabela-materiais">
+                <thead>
+                    <tr>
+                        <th>Descrição do Item</th>
+                        <th style="width: 60px; text-align: center;">Qtd</th>
+                        <th style="text-align: right;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-materiais"></tbody>
+            </table>
+        </section>
+
+        <section class="card no-print">
+            <h2>Custos Adicionais (Uso Interno)</h2>
+            <div id="container-extras"></div>
+            <button class="btn btn-outline" onclick="addExtraRow()">+ Adicionar Gasto Extra</button>
+        </section>
+
+        <section class="card summary">
+            <div class="grid">
+                <div>
+                    <div class="form-group">
+                        <label class="no-print">Condição de Pagamento</label>
+                        <span class="print-only" style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Forma de Pagamento:</span>
+                        <input type="text" id="condicao_pagamento">
+                    </div>
+                    <div class="form-group">
+                        <label class="no-print">Prazo de Execução</label>
+                        <span class="print-only" style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Prazo de Instalação:</span>
+                        <input type="text" id="prazo_execucao">
+                    </div>
+                </div>
+
+                <div>
+                    <!-- DADOS VISUAIS DA TELA (Uso Interno - Não vai pro PDF) -->
+                    <div class="summary-row no-print" style="font-size: 0.85rem; color: var(--secondary);">
+                        <span>Custo Mat + Deslocamento:</span>
+                        <span id="resumo_mat_km">R$ 0,00</span>
+                    </div>
+                    <div class="summary-row no-print" style="font-size: 0.85rem; color: var(--secondary);">
+                        <span>Custo Ajudante + Extras:</span>
+                        <span id="resumo_ajudante">R$ 0,00</span>
+                    </div>
+                    <div class="summary-row no-print" style="border-top: 1px dashed #cbd5e1; padding-top: 5px;">
+                        <span>Subtotal Base (Custo):</span>
+                        <span id="resumo_custo_bruto" style="font-weight: bold;">R$ 0,00</span>
+                    </div>
+                    <div class="summary-row no-print" style="color: var(--success); font-weight: bold;">
+                        <span>Lucro Projetado (<span id="resumo_margem_perc">0%</span>):</span>
+                        <span id="resumo_lucro_rs">R$ 0,00</span>
+                    </div>
+
+                    <!-- ESTE VAI PARA O PDF E TELA -->
+                    <div class="total-row summary-row">
+                        <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase;">Investimento Total:</span>
+                        <span id="resumo_total_final">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="print-only legal-terms" id="termos_legais"></div>
+
+        <div class="print-only signature-area">
+            <div class="signature-line">De Acordo - Assinatura do Cliente</div>
+            <div class="signature-line">Responsável Técnico Executante</div>
+        </div>
+    </div>
+
+    <div class="no-print btn-group-bottom">
+        <button class="btn btn-primary" onclick="gerarPDF()" style="flex: 2;">
+            GERAR PDF DA PROPOSTA COMERCIAL
+        </button>
+        <button class="btn btn-secondary" onclick="window.location.href='editor.html'" style="flex: 1;">
+            ⚙️ Editar Configurações
+        </button>
+    </div>
+</div>
+
+<script>
+    let precos = {};
+    let textos = {};
+
+    const itensEstoque = [
+        { id: 'cabo', nome: "Cabo Flexível 10mm² (3 vias)", formula: (d) => (d * 3) * 1.15, precoKey: 'cabo_10mm' },
+        { id: 'eletroduto', nome: "Eletroduto PVC Rígido 3/4 (3m)", formula: (d) => Math.ceil(d / 3), precoKey: 'eletroduto_3m' },
+        // UNIDUT CÔNICO ALTERADO PARA SEMPRE DAR 4 UNIDADES
+        { id: 'unidut', nome: "Unidut Cônico 3/4", formula: (d) => d > 0 ? 4 : 0, precoKey: 'unidut' }, 
+        { id: 'unidut_reto', nome: "Unidut Reto 3/4", formula: (d) => d > 0 ? Math.ceil(Math.ceil(d / 3) / 2) : 0, precoKey: 'unidut_reto' },
+        { id: 'condulete', nome: "Condulete Alumínio 3/4", formula: (d) => d > 0 ? Math.floor(Math.ceil(d / 3) / 2) : 0, precoKey: 'condulete' },
+        { id: 'string_box', nome: "Quadro de Proteção (String Box CA)", formula: (d) => d > 0 ? 1 : 0, precoKey: 'string_box' },
+        { id: 'disjuntor', nome: "Disjuntor DIN 40A", formula: (d) => d > 0 ? 1 : 0, precoKey: 'disjuntor_40a' },
+        { id: 'dps', nome: "DPS 275V 45kA", formula: (d) => d > 0 ? 1 : 0, precoKey: 'dps' },
+        { id: 'idr', nome: "IDR Tetrapolar Tipo A", formula: (d) => d > 0 ? 1 : 0, precoKey: 'idr_tipo_a' },
+        { id: 'abracadeira', nome: "Abraçadeira Tipo D", formula: (d) => Math.ceil(d * 1.5), precoKey: 'abracadeira' },
+        { id: 'carregador_ve', nome: "Carregador VE Smart 7.4kW", formula: () => 0, precoKey: 'carregador' }
+    ];
+
+    async function carregarPrecos() {
+        try {
+            const apiURL = 'https://script.google.com/macros/s/AKfycbyP22sgXl2DuZNMXNG_yoF75mGR8EG9RdxTyEMiiZIElvQOYNIDZzXgwqfVwZ-y0kmB/exec';
+            
+            const response = await fetch(apiURL);
+            
+            if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+
+            const dadosSheet = await response.json();
+
+            if (dadosSheet.error) throw new Error(dadosSheet.error);
+
+            dadosSheet.forEach(linha => {
+                const colunas = Object.keys(linha);
+                if (colunas.length >= 2) {
+                    const nomeColunaChave = colunas.find(k => k.toLowerCase().includes('chave')) || colunas[0];
+                    const nomeColunaValor = colunas.find(k => k.toLowerCase().includes('valor')) || colunas[1];
+
+                    const chave = linha[nomeColunaChave] ? linha[nomeColunaChave].toString().trim() : '';
+                    const valorBruto = linha[nomeColunaValor] ? linha[nomeColunaValor].toString().trim() : '';
+                    
+                    if (chave) {
+                        if (chave.startsWith('texto_')) {
+                            textos[chave] = valorBruto;
+                        } else {
+                            precos[chave] = parseFloat(valorBruto.replace(',', '.')) || 0;
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('escopo_servico').value = textos.texto_escopo || "Instalação completa de infraestrutura elétrica para carregador de Veículo Elétrico.";
+            document.getElementById('condicao_pagamento').value = textos.texto_pagamento || "50% na aprovação e 50% na conclusão do serviço.";
+            document.getElementById('prazo_execucao').value = textos.texto_prazo || "Até 2 dias úteis após a aprovação da proposta.";
+            
+            const textoRodape = textos.texto_termos || "A contratante é responsável por garantir capacidade de carga elétrica.";
+            document.getElementById('termos_legais').innerHTML = `<strong>Observações e Responsabilidades:</strong> ${textoRodape}`;
+
+            inicializarTabela();
+            atualizarQuantidadesSugeridas();
+        } catch (error) {
+            console.error("ERRO NO FETCH:", error);
+            inicializarTabela();
+            atualizarQuantidadesSugeridas();
+        }
+    }
+
+    function inicializarTabela() {
+        const tbody = document.getElementById('lista-materiais');
+        tbody.innerHTML = '';
+        
+        itensEstoque.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.id = `row_${item.id}`;
+            tr.innerHTML = `
+                <td>${item.nome}</td>
+                <td style="text-align: center;">
+                    <input type="number" id="qtd_${item.id}" class="qty-input" value="0" min="0" step="any" oninput="calcularFinanceiro()">
+                </td>
+                <td style="text-align: right;" id="subtotal_${item.id}">R$ 0,00</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function atualizarQuantidadesSugeridas() {
+        const dist = parseFloat(document.getElementById('input_distancia').value) || 0;
+        const venderCarregador = document.getElementById('check_vender_carregador').checked;
+
+        itensEstoque.forEach(item => {
+            let qtd = item.formula(dist);
+            if (item.id === 'carregador_ve') {
+                qtd = venderCarregador ? 1 : 0;
+            }
+            const campo = document.getElementById(`qtd_${item.id}`);
+            campo.value = (item.id === 'cabo') ? qtd.toFixed(1) : qtd;
+        });
+
+        calcularFinanceiro();
+    }
+
+    function calcularFinanceiro() {
+        const margem = precos.margem_lucro || 0;
+        let custoMateriais = 0;
+
+        itensEstoque.forEach(item => {
+            const campo = document.getElementById(`qtd_${item.id}`);
+            const qtd = parseFloat(campo.value) || 0;
+            const precoUnitario = precos[item.precoKey] || 0;
+            const subtotal = qtd * precoUnitario;
+            
+            document.getElementById(`subtotal_${item.id}`).innerText = `R$ ${subtotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            const row = document.getElementById(`row_${item.id}`);
+            if (qtd === 0) {
+                row.classList.add('hide-if-zero');
+            } else {
+                row.classList.remove('hide-if-zero');
+            }
+            custoMateriais += subtotal;
+        });
+
+        const km = parseFloat(document.getElementById('input_km').value) || 0;
+        const custoKm = km * (precos.valor_km || 0);
+        
+        const incluirAjudante = document.getElementById('check_ajudante').checked;
+        const custoAjudante = incluirAjudante ? (precos.valor_diaria_ajudante || 0) : 0;
+
+        let custoExtras = 0;
+        document.querySelectorAll('.extra-val').forEach(input => {
+            custoExtras += parseFloat(input.value) || 0;
+        });
+
+        // Agrupando os Custos para melhor visualização na Tela
+        const custoMatKm = custoMateriais + custoKm;
+        const custoPessoalExtra = custoAjudante + custoExtras;
+        const custoBrutoTotal = custoMatKm + custoPessoalExtra;
+        
+        // Calculando a Margem de Lucro em Reais
+        const lucroReais = custoBrutoTotal * (margem / 100);
+        const valorFinal = custoBrutoTotal + lucroReais;
+
+        // Atualizando a Interface do Resumo
+        document.getElementById('resumo_mat_km').innerText = `R$ ${custoMatKm.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('resumo_ajudante').innerText = `R$ ${custoPessoalExtra.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('resumo_custo_bruto').innerText = `R$ ${custoBrutoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        
+        document.getElementById('resumo_margem_perc').innerText = `${margem}%`;
+        document.getElementById('resumo_lucro_rs').innerText = `R$ ${lucroReais.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        
+        document.getElementById('resumo_total_final').innerText = `R$ ${valorFinal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        
+        document.getElementById('data-atual').innerText = new Date().toLocaleDateString('pt-BR');
+    }
+
+    function addExtraRow() {
+        const div = document.createElement('div');
+        div.className = 'extra-item';
+        div.innerHTML = `
+            <input type="text" placeholder="Nome do gasto" style="flex:2">
+            <input type="number" class="extra-val" placeholder="R$" style="flex:1" oninput="calcularFinanceiro()">
+            <button class="btn btn-outline" style="color:red; border-color:red;" onclick="this.parentElement.remove(); calcularFinanceiro();">X</button>
+        `;
+        document.getElementById('container-extras').appendChild(div);
+    }
+
+    async function gerarPDF() {
+        window.scrollTo(0, 0); 
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        const element = document.getElementById('pdf-area');
+        document.body.classList.add('is-printing');
+        
+        await new Promise(r => setTimeout(r, 150));
+        
+        const opt = {
+            margin:       [5, 5, 5, 5], 
+            filename:     `Orcamento_VE_${document.getElementById('cliente_nome').value || 'Cliente'}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                scrollY: 0, 
+                windowWidth: document.documentElement.offsetWidth
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+            await html2pdf().set(opt).from(element).save();
+        } finally {
+            document.body.classList.remove('is-printing');
+        }
+    }
+
+    carregarPrecos();
+</script>
+
+</body>
+</html>
