@@ -10,7 +10,8 @@ const projects = [
     description: "Projeto demo de uma plataforma web criada para centralizar operações, organizar informações e oferecer uma visão mais clara do negócio em um único ambiente.",
     year: "2026",
     type: "Sistema web",
-    label: "Projeto demonstrativo"
+    label: "Projeto demonstrativo",
+    link: "portfolio-atlas.html"
   }
 ];
 
@@ -48,7 +49,7 @@ function renderProjects() {
   }
 
   grid.innerHTML = visibleProjects.map((project, index) => `
-    <article class="portfolio-card reveal visible">
+    <a class="portfolio-card reveal visible" href="${project.link}" aria-label="Ver projeto ${project.title}">
       <div class="portfolio-cover">
         <div class="portfolio-cover-mark"><span>CodeNextOn</span> / ${String(index + 1).padStart(2, "0")}</div>
       </div>
@@ -62,7 +63,7 @@ function renderProjects() {
           <div><strong>${project.label}</strong><span>Identificação</span></div>
         </div>
       </div>
-    </article>
+    </a>
   `).join("");
 }
 
