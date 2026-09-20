@@ -4,16 +4,14 @@
   Não é necessário alterar o HTML.
 */
 const projects = [
-  /*
   {
-    title: "Nome do projeto",
-    category: "Sites",
-    description: "Breve descrição do que foi desenvolvido e do problema resolvido.",
+    title: "Atlas — Plataforma de Gestão",
+    category: "Sistemas",
+    description: "Projeto demo de uma plataforma web criada para centralizar operações, organizar informações e oferecer uma visão mais clara do negócio em um único ambiente.",
     year: "2026",
-    type: "Site institucional",
-    label: "Projeto / Cliente"
-  },
-  */
+    type: "Sistema web",
+    label: "Projeto demonstrativo"
+  }
 ];
 
 const grid = document.querySelector("#portfolio-grid");
