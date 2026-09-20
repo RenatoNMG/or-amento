@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Portfólio CodeNextOn — projetos, sites, sistemas e soluções digitais desenvolvidos pela empresa.">
+  <meta name="theme-color" content="#f4f1ea">
+  <title>Portfólio — CodeNextOn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="site-bg" aria-hidden="true"></div>
+  <header class="header" id="inicio">
+    <div class="container nav">
+      <a class="brand" href="index.html" aria-label="CodeNextOn — início">
+        <span class="brand-mark"><span></span><span></span><span></span></span>
+        <span>Code<span>Next</span>On</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+      <nav class="nav-links" aria-label="Navegação principal">
+        <a href="index.html#solucoes">Soluções</a>
+        <a href="portfolio.html">Portfólio</a>
+        <a href="index.html#processo">Processo</a>
+        <a href="index.html#sobre">Sobre</a>
+        <a href="index.html#contato">Contato</a>
+        <a class="nav-cta" href="index.html#contato">Começar projeto <span>↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="portfolio-hero">
+      <div class="container portfolio-hero-grid">
+        <div class="reveal">
+          <div class="eyebrow portfolio-kicker"><span></span> Projetos realizados</div>
+          <h1>Trabalho que <em>fala por si.</em></h1>
+        </div>
+        <div class="reveal">
+          <p class="portfolio-intro">Uma seleção de projetos desenvolvidos pela CodeNextOn. Esta página foi criada para crescer junto com o nosso portfólio.</p>
+          <div class="portfolio-meta">
+            <div><strong id="project-count">0</strong><span>projetos publicados</span></div>
+            <div><strong>04</strong><span>áreas de atuação</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="portfolio-list-section">
+      <div class="container">
+        <div class="portfolio-toolbar reveal">
+          <h2>Projetos</h2>
+          <div class="portfolio-filters" id="portfolio-filters" aria-label="Filtrar portfólio"></div>
+        </div>
+        <div class="portfolio-grid" id="portfolio-grid"></div>
+
+        <div class="portfolio-cta reveal">
+          <div>
+            <h2>Quer ver seu projeto <span>aqui?</span></h2>
+            <p>Conte o que você precisa e vamos transformar a ideia em uma solução digital.</p>
+          </div>
+          <a class="button button-primary" href="index.html#contato">Falar sobre um projeto <span>↗</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <a class="brand" href="index.html"><span class="brand-mark"><span></span><span></span><span></span></span><span>Code<span>Next</span>On</span></a>
+      <p>© <span id="year"></span> CodeNextOn. Todos os direitos reservados.</p>
+      <a href="#inicio">Voltar ao topo ↑</a>
+    </div>
+  </footer>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/portfolio.js"></script>
+</body>
+</html>
